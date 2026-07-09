@@ -1,0 +1,19 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background:
+    radial-gradient(1200px 500px at 50% -10%, rgba(123, 97, 255, 0.18), transparent 60%),
+    radial-gradient(900px 400px at 50% 110%, rgba(50, 255, 91, 0.08), transparent 60%),
+    #08111D;
+  min-width: 320px;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  height: 100dvh;
+}
+
+#root {
+  height: 100%;
+}

@@ -1,0 +1,983 @@
+/* ============ KUKU DANGER — design.md theme ============ */
+:root {
+    --kd-bg: #08111D;
+    --kd-panel: #122033;
+    --kd-road: #1D2735;
+    --kd-green: #31FF5B;
+    --kd-warning: #FFC83D;
+    --kd-danger: #FF4D5A;
+    --kd-purple: #766CFF;
+    --kd-glass: rgba(255, 255, 255, 0.08);
+    --kd-glass-border: rgba(255, 255, 255, 0.12);
+    --kd-text: #FFFFFF;
+    --kd-muted: #8A94A8;
+    --kd-text-dim: rgba(255, 255, 255, 0.55);
+    --kd-radius: 22px;
+    --kd-radius-sm: 14px;
+    /* 8px spacing system — gaps/paddings below are clamp()'d around these
+       steps so they compress fluidly on narrow phones instead of jumping
+       at hard breakpoints. */
+    --kd-space-1: 4px;
+    --kd-space-2: 8px;
+    --kd-space-3: 12px;
+    --kd-space-4: 16px;
+    /* WCAG/Android touch-target floor — every tappable control clamps to
+       at least this on both axes. */
+    --kd-tap: 24px;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.vuka-game-container {
+    background:
+        radial-gradient(1200px 500px at 50% -10%, rgba(123, 97, 255, 0.18), transparent 60%),
+        radial-gradient(900px 400px at 50% 110%, rgba(50, 255, 91, 0.08), transparent 60%),
+        var(--kd-bg);
+    /* height (not min-height) so the flex column below has a definite
+       main-axis size to distribute — the canvas's `flex:1` needs that to
+       resolve its share of space. dvh (not vh) so Samsung/Chrome's address
+       bar doesn't push content below the fold; svh/vh chained first as a
+       progressive-enhancement fallback for browsers without dvh support. */
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    overflow-x: hidden;
+    /* Escape hatch only — on a screen so short that the canvas's min-height
+       floor (see .kd-scene-container) plus every other section's natural
+       size still doesn't fit, scroll instead of silently clipping content
+       behind the fixed box above. Does not engage on any mainstream phone
+       size; every section below is sized to fit 100dvh on its own. */
+    overflow-y: auto;
+    max-width: 719px;
+    margin: 0 auto;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--kd-text);
+    padding:
+        max(var(--kd-space-2), env(safe-area-inset-top, 0px))
+        max(var(--kd-space-2), env(safe-area-inset-right, 0px))
+        max(var(--kd-space-2), env(safe-area-inset-bottom, 0px))
+        max(var(--kd-space-2), env(safe-area-inset-left, 0px));
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 1vw, 4px);
+}
+
+/* ============ TOP HUD ============ */
+.top-bar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    background: var(--kd-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius);
+    padding: clamp(0.15rem, 0.7vw, 0.22rem) clamp(0.5rem, 2.5vw, 0.65rem);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    /* Never shrinks below its content — the header stays fully visible and
+       compact no matter how tall/short the device is; the 3D canvas is the
+       only section that actually flexes. */
+    flex-shrink: 0;
+}
+
+.top-left {
+    display: flex;
+    gap: clamp(0.3rem, 1.5vw, 0.5rem);
+    justify-content: flex-start;
+}
+
+.top-center {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+}
+
+.kuku-logo {
+    width: clamp(30px, 9vw, 40px);
+    height: auto;
+    filter: drop-shadow(0 0 12px rgba(50, 255, 91, 0.35));
+}
+
+.top-right {
+    display: flex;
+    justify-content: flex-end;
+    min-width: 0;
+}
+
+.kd-balance-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: 999px;
+    padding: clamp(5px, 1.5vw, 6px) clamp(8px, 3vw, 12px);
+    font-weight: 800;
+    font-size: clamp(0.75rem, 3vw, 0.95rem);
+    color: var(--kd-warning);
+    text-shadow: 0 0 14px rgba(255, 200, 61, 0.45);
+    white-space: nowrap;
+}
+
+.kd-balance-pill img {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.icon-button {
+    /* 44px Android/WCAG touch-target floor — was 32px, the visible circle
+       and icon glyph are unchanged, only the tappable area grows. */
+    width: var(--kd-tap);
+    height: var(--kd-tap);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--kd-text);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.icon-button:active {
+    transform: scale(0.9);
+}
+
+.icon-button:hover {
+    background: rgba(123, 97, 255, 0.25);
+    box-shadow: 0 0 14px rgba(123, 97, 255, 0.35);
+}
+
+/* ============ HUD STATS ROW (multiplier / best / lane) ============ */
+.kd-hud-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: clamp(4px, 1.5vw, 8px);
+    flex-shrink: 0;
+}
+
+.kd-stat-card {
+    background: var(--kd-glass);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius-sm);
+    padding: clamp(4px, 1.5vw, 5px) clamp(6px, 2.5vw, 8px);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.kd-stat-label {
+    font-size: clamp(0.55rem, 2.2vw, 0.6rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--kd-text-dim);
+    font-weight: 700;
+    overflow-wrap: break-word;
+}
+
+.kd-stat-value {
+    font-size: clamp(0.85rem, 4vw, 1rem);
+    font-weight: 900;
+    color: var(--kd-text);
+    overflow-wrap: break-word;
+}
+
+.kd-stat-value.kd-mult {
+    color: var(--kd-green);
+    text-shadow: 0 0 16px rgba(50, 255, 91, 0.6);
+    animation: kd-mult-pop 0.45s ease;
+}
+
+.kd-stat-value.kd-best {
+    color: var(--kd-purple);
+    text-shadow: 0 0 14px rgba(123, 97, 255, 0.55);
+}
+
+@keyframes kd-mult-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); filter: brightness(1.6); }
+    100% { transform: scale(1); }
+}
+
+/* ============ PROGRESS BAR ============ */
+.kd-progress {
+    background: var(--kd-glass);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius-sm);
+    padding: clamp(5px, 1.5vw, 6px) clamp(8px, 3vw, 10px);
+    display: flex;
+    align-items: center;
+    gap: clamp(6px, 2vw, 10px);
+    flex-shrink: 0;
+}
+
+.kd-progress-track {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    min-width: 0;
+}
+
+.kd-progress-seg {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.kd-progress-seg.lit {
+    background: var(--kd-green);
+    box-shadow: 0 0 10px rgba(50, 255, 91, 0.7);
+    animation: kd-seg-pop 0.4s ease;
+}
+
+@keyframes kd-seg-pop {
+    0% { transform: scaleY(1); }
+    50% { transform: scaleY(2.2); }
+    100% { transform: scaleY(1); }
+}
+
+.kd-progress-emoji {
+    font-size: 1rem;
+    line-height: 1;
+    flex-shrink: 0;
+}
+
+.kd-progress-count {
+    font-size: clamp(0.65rem, 2.5vw, 0.72rem);
+    font-weight: 800;
+    color: var(--kd-text-dim);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ============ GAME AREA (canvas card) ============ */
+.vuka-canvas-container {
+    overflow: hidden;
+    position: relative;
+    border-radius: var(--kd-radius);
+    border: 1px solid var(--kd-glass-border);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45), inset 0 0 60px rgba(0, 0, 0, 0.35);
+}
+
+#vuka-canvas {
+    display: flex;
+    margin: 0 auto;
+}
+
+/* ============ BETTING PANEL ============ */
+.vuka-game-area {
+    background: var(--kd-glass);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius);
+    padding: clamp(4px, 1.5vw, 6px) clamp(6px, 2.5vw, 8px);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.vuka-main-bet-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vuka-controls-title {
+    color: var(--kd-text-dim);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.vuka-bet-amount-area {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(2px, 1vw, 4px);
+}
+
+/* Quick chips — grid instead of a fixed 6-across flex row, so on a narrow
+   phone the chips wrap onto a second row (auto-fit) instead of squeezing
+   text/hit-targets down to nothing. Stays a single row on anything wide
+   enough to fit six ~56px-minimum chips (roughly >=380px content width),
+   matching the previous single-row look on normal phones unchanged. */
+.vuka-bet-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
+    align-items: stretch;
+    width: 100%;
+    gap: clamp(4px, 1.5vw, 6px);
+}
+
+.vuka-bet-controls-buttons {
+    border: 1px solid var(--kd-glass-border);
+    background: rgba(0, 0, 0, 0.3);
+    font-size: 0.78rem;
+    color: var(--kd-text);
+    border-radius: 999px;
+    font-weight: 800;
+    /* Padding shrunk to the bare minimum — min-height:var(--kd-tap) alone
+       (44px, the touch-target floor) is what actually sets the button's
+       height now, not padding stacking on top of the font's natural size. */
+    padding: 4px 4px;
+    min-height: var(--kd-tap);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vuka-bet-controls-buttons:active {
+    transform: scale(0.92);
+}
+
+.vuka-active-bet {
+    border-color: var(--kd-green);
+    color: var(--kd-green);
+    box-shadow: 0 0 14px rgba(50, 255, 91, 0.45), inset 0 0 10px rgba(50, 255, 91, 0.12);
+    text-shadow: 0 0 10px rgba(50, 255, 91, 0.6);
+}
+
+/* Amount stepper */
+.vuka-plus-minus-input-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.35);
+    align-items: center;
+    border-radius: var(--kd-radius-sm);
+    border: 1px solid var(--kd-glass-border);
+    padding: 4px;
+    gap: 4px;
+}
+
+.vuka-plus-minus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--kd-text);
+    font-size: 1.1rem;
+    font-weight: 900;
+    width: var(--kd-tap);
+    height: var(--kd-tap);
+    background: var(--kd-glass);
+    border-radius: 10px;
+    border: 1px solid var(--kd-glass-border);
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.vuka-plus-minus:active {
+    transform: scale(0.88);
+}
+
+.vuka-plus-minus:hover {
+    background: rgba(50, 255, 91, 0.15);
+    box-shadow: 0 0 12px rgba(50, 255, 91, 0.25);
+}
+
+.vuka-bet-Amount {
+    font-size: clamp(1rem, 4vw, 1.2rem);
+    color: var(--kd-text);
+    text-align: center;
+    background: transparent;
+    font-weight: 900;
+    width: 100%;
+    min-width: 0;
+    border: none;
+    outline: none;
+}
+
+/* Auto cash-out — a real toggle switch (was a native checkbox) with the
+   stepper only appearing once enabled, instead of always showing a greyed-
+   out disabled stepper: progressive disclosure reads clearer and costs
+   nothing vertically when the feature is off. */
+.vuka-auto-cashout {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+    flex-wrap: wrap;
+    min-height: var(--kd-tap);
+}
+
+.vuka-toggle-switch {
+    position: relative;
+    width: 38px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--kd-glass-border);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+    flex-shrink: 0;
+    /* Visual track is compact, but the tappable area is the full --kd-tap
+       box (centered via the row's align-items) so it still meets the touch
+       floor without inflating the switch's own visible size. */
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.vuka-toggle-switch:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.vuka-toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--kd-text);
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vuka-toggle-on {
+    background: var(--kd-green);
+    border-color: var(--kd-green);
+    box-shadow: 0 0 10px rgba(50, 255, 91, 0.5);
+}
+
+.vuka-toggle-on .vuka-toggle-thumb {
+    transform: translateX(16px);
+    background: #04270d;
+}
+
+.vuka-auto-cashout-label {
+    color: var(--kd-text-dim);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.vuka-auto-cashout-stepper {
+    flex: 1;
+    min-width: 140px;
+    padding: 2px;
+}
+
+.vuka-auto-cashout-stepper .vuka-plus-minus {
+    /* Secondary/optional control next to the primary stepper above — kept
+       narrower than --kd-tap so it visually reads as the smaller auxiliary
+       control it always was, while still meeting the touch-target height
+       floor. */
+    width: 32px;
+    height: var(--kd-tap);
+    font-size: 0.9rem;
+}
+
+.vuka-auto-cashout-stepper .vuka-bet-Amount {
+    font-size: 0.9rem;
+}
+
+.vuka-auto-cashout-suffix {
+    color: var(--kd-text-dim);
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    padding-right: 4px;
+    flex-shrink: 0;
+}
+
+/* ============ DIFFICULTY CARDS ============ */
+.kuku-levels {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: clamp(3px, 1.2vw, 5px);
+    margin-top: 2px;
+}
+
+.kuku-level-btn {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--kd-text);
+    text-align: center;
+    padding: clamp(1px, 0.6vw, 2px) 2px;
+    border-radius: var(--kd-radius-sm);
+    border: 1px solid var(--kd-glass-border);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    min-height: var(--kd-tap);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    user-select: none;
+}
+
+.kuku-level-icon {
+    font-size: clamp(0.75rem, 2.8vw, 0.9rem);
+    line-height: 1;
+}
+
+.kuku-level-name {
+    font-weight: 800;
+    font-size: clamp(0.6rem, 2.4vw, 0.7rem);
+}
+
+.kuku-level-risk {
+    font-size: clamp(0.44rem, 1.8vw, 0.5rem);
+    color: var(--kd-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+}
+
+.kuku-active-level {
+    border-color: var(--kd-green);
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), 0 0 16px rgba(50, 255, 91, 0.35);
+}
+
+.kuku-active-level .kuku-level-name {
+    color: var(--kd-green);
+    text-shadow: 0 0 10px rgba(50, 255, 91, 0.55);
+}
+
+/* ============ PRIMARY BUTTON ============ */
+.vuka-button-group-place-Bet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0 0;
+    width: 100%;
+}
+
+.vuka-bet-button {
+    width: 100%;
+    /* Slightly shorter than before (was 48px) while staying at exactly the
+       44px touch-target floor — still full-width + gradient + glow, so it
+       reads just as prominent. */
+    min-height: var(--kd-tap);
+    padding: 8px 0;
+    color: #04270d;
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: var(--kd-radius-sm);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #32FF5B, #1ed14a);
+    box-shadow: 0 0 24px rgba(50, 255, 91, 0.45), 0 8px 22px rgba(0, 0, 0, 0.4);
+    transition: transform 0.12s ease, box-shadow 0.2s ease;
+    user-select: none;
+}
+
+.vuka-bet-button:active {
+    transform: scale(0.97);
+}
+
+.vuka-bet-button.kd-cashout {
+    background: linear-gradient(135deg, #FFC83D, #ff9f1a);
+    color: #3a2600;
+    box-shadow: 0 0 24px rgba(255, 200, 61, 0.5), 0 8px 22px rgba(0, 0, 0, 0.4);
+    animation: kd-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes kd-pulse {
+    0%, 100% { box-shadow: 0 0 18px rgba(255, 200, 61, 0.4), 0 8px 22px rgba(0, 0, 0, 0.4); }
+    50% { box-shadow: 0 0 34px rgba(255, 200, 61, 0.8), 0 8px 22px rgba(0, 0, 0, 0.4); }
+}
+
+.vuka-bet-button.disabled {
+    background: #3a4a5a;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+    animation: none;
+}
+
+/* ============ HISTORY (cards, horizontal scroll) ============ */
+.vuka-main-history {
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.vuka-history-container {
+    color: var(--kd-text-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.vuka-history-select-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.vuka-history-select {
+    border-radius: 8px;
+    color: var(--kd-text);
+    background-color: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--kd-glass-border);
+    cursor: pointer;
+    outline: none;
+    padding: 8px 10px;
+    min-height: var(--kd-tap);
+    font-weight: 700;
+}
+
+.kd-history-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 1px 1px 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.kd-history-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.kd-history-card {
+    min-width: 76px;
+    flex-shrink: 0;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius-sm);
+    padding: 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    animation: kd-card-in 0.3s ease;
+}
+
+@keyframes kd-card-in {
+    from { opacity: 0; transform: translateX(12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.kd-history-card.kd-win {
+    border-color: rgba(50, 255, 91, 0.45);
+    box-shadow: 0 0 12px rgba(50, 255, 91, 0.15);
+}
+
+.kd-history-card.kd-lose {
+    border-color: rgba(255, 77, 77, 0.45);
+    box-shadow: 0 0 12px rgba(255, 77, 77, 0.12);
+}
+
+.kd-history-mult {
+    font-size: 0.95rem;
+    font-weight: 900;
+}
+
+.kd-win .kd-history-mult { color: var(--kd-green); }
+.kd-lose .kd-history-mult { color: var(--kd-danger); }
+
+.kd-history-amount {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--kd-text);
+}
+
+.kd-history-status {
+    font-size: 0.55rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 1px 6px;
+    border-radius: 999px;
+}
+
+.kd-win .kd-history-status {
+    background: rgba(50, 255, 91, 0.15);
+    color: var(--kd-green);
+}
+
+.kd-lose .kd-history-status {
+    background: rgba(255, 77, 77, 0.15);
+    color: var(--kd-danger);
+}
+
+.kd-history-empty {
+    color: var(--kd-text-dim);
+    font-size: 0.8rem;
+    padding: 12px;
+    text-align: center;
+    width: 100%;
+}
+
+/* ============ WIN POPUP ============ */
+.vuka-pop-overlay {
+    inset: 0;
+    z-index: 50;
+    position: fixed;
+    background: rgba(4, 10, 18, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.25s ease;
+    padding: var(--kd-space-2);
+}
+
+.vuka-pop-up-container {
+    display: flex;
+    flex-direction: column;
+    background: var(--kd-panel);
+    color: var(--kd-green);
+    border: 2px solid var(--kd-green);
+    width: min(240px, 90vw);
+    padding: 18px;
+    align-items: center;
+    border-radius: var(--kd-radius);
+    box-shadow: 0 0 40px rgba(50, 255, 91, 0.45), 0 20px 50px rgba(0, 0, 0, 0.5);
+    animation: kd-pop-win 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes kd-pop-win {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.vuka-pop-up-title {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--kd-text-dim);
+}
+
+.vuka-pop-up-header {
+    padding: 8px 0 4px;
+    font-size: clamp(1.3rem, 6vw, 1.7rem);
+    font-weight: 900;
+    text-shadow: 0 0 18px rgba(50, 255, 91, 0.7);
+}
+
+.vuka-pop-up-multiplier {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    font-size: 0.9rem;
+    padding: 8px 6px 0;
+    color: var(--kd-text);
+    font-weight: 700;
+}
+
+.vuka-pop-up-multiplier div {
+    color: var(--kd-purple);
+    font-weight: 900;
+}
+
+/* ============ HOW TO PLAY MODAL ============ */
+/* HowToPlayModal owns its full overlay (fixed + backdrop + animation)
+   itself now — it used to also get wrapped by a separate .howto-overlay/
+   .howto-card pair in TopHUD.tsx, nested INSIDE .top-bar. .top-bar has
+   backdrop-filter, which creates a CSS containing block for descendant
+   position:fixed elements, so the modal was trapped inside the small
+   header box instead of covering the viewport ("not popping correctly").
+   Rendering this as a self-contained overlay, as a sibling of .top-bar
+   instead of a child, fixes it. */
+.kuku-howto-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 10, 18, 0.7);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease forwards;
+    padding: var(--kd-space-2);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.kuku-howto-box {
+    background: var(--kd-panel);
+    color: var(--kd-text);
+    width: min(92%, 460px);
+    padding: clamp(1rem, 4vw, 1.6rem);
+    border-radius: var(--kd-radius);
+    border: 1px solid var(--kd-glass-border);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 30px rgba(123, 97, 255, 0.15);
+    position: relative;
+    max-height: 85dvh;
+    overflow-y: auto;
+    animation: slideUp 0.35s ease forwards;
+}
+
+.kuku-howto-title {
+    font-size: clamp(1.1rem, 5vw, 1.4rem);
+    text-align: center;
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, var(--kd-green), var(--kd-warning));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+}
+
+.kuku-howto-title span {
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+}
+
+.kuku-howto-list {
+    margin: 1rem 0;
+    padding-left: 1.2rem;
+    line-height: 1.6;
+}
+
+.kuku-howto-list li {
+    margin-bottom: 0.6rem;
+    font-size: 0.92rem;
+}
+
+.kuku-howto-note {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    opacity: 0.7;
+    text-align: center;
+}
+
+.kuku-howto-close {
+    margin-top: 1.2rem;
+    display: block;
+    width: 100%;
+    min-height: var(--kd-tap);
+    padding: 0.8rem;
+    font-size: 0.95rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, #32FF5B, #1ed14a);
+    border: none;
+    border-radius: var(--kd-radius-sm);
+    cursor: pointer;
+    color: #04270d;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 0 18px rgba(50, 255, 91, 0.35);
+}
+
+.kuku-howto-close:active {
+    transform: scale(0.97);
+}
+
+/* ============ 3D SCENE CONTAINER ============ */
+.kd-scene-container {
+    /* Explicit height (not flex:1 leftover) so the canvas gets a real ~60%
+       share of the viewport regardless of how tall the controls below end
+       up being, per the game-should-be-the-main-focus requirement — 58dvh
+       preferred, clamped so it never collapses unplayably small on a short
+       screen or balloons past a sane cap on a tall one. flex-shrink:0 keeps
+       it from being squeezed by the controls column; that column compresses
+       instead (see BETTING PANEL / DIFFICULTY CARDS / PRIMARY BUTTON rules
+       below) so the two sides land close to the 60/40 split. React Three
+       Fiber's <Canvas> already runs its own ResizeObserver and keeps the
+       renderer size + camera aspect in sync with this container on every
+       resize/orientation change — no manual Three.js resize code needed.
+    */
+    flex-shrink: 0;
+    height: clamp(200px, 47dvh, 460px);
+    touch-action: none;
+}
+
+.kd-scene-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* ============ BREAKPOINTS ============
+   Base rules above are mobile-first and already fluid via clamp()/vw, so
+   most sizes scale continuously rather than jumping at these widths. The
+   breakpoints below only step in where a continuous scale isn't enough:
+   compressing spacing further on the smallest phones, and confirming the
+   existing centered-card desktop look is preserved unchanged at tablet/
+   desktop widths (no redesign). */
+
+/* Below 480px (small Galaxy A / compact phones): compress vertical rhythm
+   further so every control stays visible without excess scrolling. */
+@media (max-width: 479px) {
+    .vuka-game-container {
+        gap: 4px;
+        padding-left: max(6px, env(safe-area-inset-left, 0px));
+        padding-right: max(6px, env(safe-area-inset-right, 0px));
+    }
+
+    .vuka-game-area {
+        padding: 6px 8px;
+    }
+
+    .kuku-levels {
+        margin-top: 4px;
+    }
+
+    .vuka-auto-cashout {
+        margin-top: 4px;
+    }
+}
+
+/* 360 / 390 / 412px — common Galaxy A/S/Note portrait widths. Nothing
+   extra needed: clamp()-based sizes above already interpolate smoothly
+   across this whole range. Kept as an explicit marker per spec. */
+@media (min-width: 360px) { /* Galaxy A-series baseline */ }
+@media (min-width: 390px) { /* Galaxy S-series baseline */ }
+@media (min-width: 412px) { /* Galaxy Note / larger Android baseline */ }
+
+/* Tablet / unfolded Fold / desktop preview — container is already capped
+   at max-width:719px and centered, so these confirm that look holds
+   rather than changing it (no redesign at larger sizes). */
+@media (min-width: 768px) {
+    .vuka-game-container {
+        padding-top: max(var(--kd-space-3), env(safe-area-inset-top, 0px));
+        padding-bottom: max(var(--kd-space-3), env(safe-area-inset-bottom, 0px));
+    }
+}
+
+@media (min-width: 1024px) {
+    .vuka-game-container {
+        gap: 8px;
+    }
+}
