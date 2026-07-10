@@ -264,6 +264,18 @@
     flex-shrink: 0;
 }
 
+/* Pins TopHUD + ProgressBar + canvas + BottomPanel to exactly one viewport
+   (min-height:100dvh). The canvas below is flex:1 so it eats any leftover
+   space, which shoves BottomPanel's bet button to the literal bottom edge
+   of the screen — history (a sibling, after this block) lands below the
+   fold and needs an explicit scroll on .vuka-game-container to reach. */
+.vuka-primary-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    gap: clamp(2px, 1vw, 4px);
+}
+
 /* ============ GAME AREA (canvas card) ============ */
 .vuka-canvas-container {
     overflow: hidden;
@@ -906,20 +918,16 @@
 
 /* ============ 3D SCENE CONTAINER ============ */
 .kd-scene-container {
-    /* Explicit height (not flex:1 leftover) so the canvas gets a real ~60%
-       share of the viewport regardless of how tall the controls below end
-       up being, per the game-should-be-the-main-focus requirement — 58dvh
-       preferred, clamped so it never collapses unplayably small on a short
-       screen or balloons past a sane cap on a tall one. flex-shrink:0 keeps
-       it from being squeezed by the controls column; that column compresses
-       instead (see BETTING PANEL / DIFFICULTY CARDS / PRIMARY BUTTON rules
-       below) so the two sides land close to the 60/40 split. React Three
-       Fiber's <Canvas> already runs its own ResizeObserver and keeps the
-       renderer size + camera aspect in sync with this container on every
-       resize/orientation change — no manual Three.js resize code needed.
+    /* flex:1 (not a fixed height) so the canvas eats whatever space is left
+       in .vuka-primary-view's 100dvh once TopHUD/ProgressBar/BottomPanel take
+       theirs — grows on tall screens, floors at min-height on short ones.
+       That's what pins BottomPanel's bet button to the bottom of the screen.
+       React Three Fiber's <Canvas> already runs its own ResizeObserver and
+       keeps the renderer size + camera aspect in sync with this container on
+       every resize/orientation change — no manual Three.js resize code needed.
     */
-    flex-shrink: 0;
-    height: clamp(200px, 47dvh, 460px);
+    flex: 1 1 auto;
+    min-height: clamp(220px, 52dvh, 500px);
     touch-action: none;
 }
 

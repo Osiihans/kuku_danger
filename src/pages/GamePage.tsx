@@ -31,12 +31,14 @@ const GamePage = () => {
 
     return (
         <div className="vuka-game-container">
-            <TopHUD />
-            <ProgressBar />
-            <div className="vuka-canvas-container kd-scene-container">
-                <GameScene />
+            <div className="vuka-primary-view">
+                <TopHUD />
+                <ProgressBar />
+                <div className="vuka-canvas-container kd-scene-container">
+                    <GameScene />
+                </div>
+                <BottomPanel />
             </div>
-            <BottomPanel />
             <HistoryCarousel />
             <WinPopup />
         </div>
