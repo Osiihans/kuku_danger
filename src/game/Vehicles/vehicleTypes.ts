@@ -1,12 +1,17 @@
-import sedanUrl from "../../assets/car_kit/Models/GLB format/sedan.glb?url";
-import suvUrl from "../../assets/car_kit/Models/GLB format/suv.glb?url";
-import taxiUrl from "../../assets/car_kit/Models/GLB format/taxi.glb?url";
-import policeUrl from "../../assets/car_kit/Models/GLB format/police.glb?url";
-import truckUrl from "../../assets/car_kit/Models/GLB format/truck.glb?url";
-import garbageTruckUrl from "../../assets/car_kit/Models/GLB format/garbage-truck.glb?url";
-import ambulanceUrl from "../../assets/car_kit/Models/GLB format/ambulance.glb?url";
-import vanUrl from "../../assets/car_kit/Models/GLB format/van.glb?url";
-import kartUrl from "../../assets/car_kit/Models/GLB format/kart-oobi.glb?url";
+// GLB models reference their colormap texture by relative URI ("Textures/colormap.png")
+// baked into the glTF JSON — not embedded. Vite's ?url import only hashes the .glb
+// itself and can't rewrite that internal reference, so a bundled import 404s the
+// texture in prod. Serving from public/ keeps paths unhashed and relative lookups intact.
+const CAR_KIT = "/car_kit/Models/GLB format";
+const sedanUrl = `${CAR_KIT}/sedan.glb`;
+const suvUrl = `${CAR_KIT}/suv.glb`;
+const taxiUrl = `${CAR_KIT}/taxi.glb`;
+const policeUrl = `${CAR_KIT}/police.glb`;
+const truckUrl = `${CAR_KIT}/truck.glb`;
+const garbageTruckUrl = `${CAR_KIT}/garbage-truck.glb`;
+const ambulanceUrl = `${CAR_KIT}/ambulance.glb`;
+const vanUrl = `${CAR_KIT}/van.glb`;
+const kartUrl = `${CAR_KIT}/kart-oobi.glb`;
 
 export interface VehicleTypeDef {
     key: string;
