@@ -81,6 +81,12 @@
        compact no matter how tall/short the device is; the 3D canvas is the
        only section that actually flexes. */
     flex-shrink: 0;
+    /* .kd-settings-dropdown overflows past this box's own bottom edge into
+       where .vuka-canvas-container sits. Without this, the canvas (later in
+       DOM, same flex stacking layer) paints over that overflow and clips
+       the dropdown. */
+    position: relative;
+    z-index: 5;
 }
 
 .top-left {
@@ -155,6 +161,48 @@
     box-shadow: 0 0 14px rgba(123, 97, 255, 0.35);
 }
 
+.kd-settings-wrap {
+    position: relative;
+}
+
+.kd-settings-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--kd-panel);
+    border: 1px solid var(--kd-glass-border);
+    border-radius: var(--kd-radius-sm);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45);
+    display: flex;
+    flex-direction: column;
+    min-width: 170px;
+    padding: 4px;
+    gap: 2px;
+    z-index: 30;
+}
+
+.kd-settings-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    color: var(--kd-text);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    min-height: var(--kd-tap);
+    white-space: nowrap;
+}
+
+.kd-settings-item:hover,
+.kd-settings-item:active {
+    background: rgba(255, 255, 255, 0.08);
+}
+
 /* ============ HUD STATS ROW (multiplier / best / lane) ============ */
 .kd-hud-stats {
     display: grid;
@@ -215,7 +263,7 @@
     background: var(--kd-glass);
     border: 1px solid var(--kd-glass-border);
     border-radius: var(--kd-radius-sm);
-    padding: clamp(5px, 1.5vw, 6px) clamp(8px, 3vw, 10px);
+    padding: clamp(3px, 1vw, 4px) clamp(8px, 3vw, 10px);
     display: flex;
     align-items: center;
     gap: clamp(6px, 2vw, 10px);
@@ -232,8 +280,8 @@
 
 .kd-progress-seg {
     flex: 1;
-    height: 8px;
-    border-radius: 4px;
+    height: 6px;
+    border-radius: 3px;
     background: rgba(255, 255, 255, 0.1);
     transition: background 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
@@ -251,7 +299,7 @@
 }
 
 .kd-progress-emoji {
-    font-size: 1rem;
+    font-size: 0.85rem;
     line-height: 1;
     flex-shrink: 0;
 }
@@ -272,7 +320,14 @@
 .vuka-primary-view {
     display: flex;
     flex-direction: column;
-    min-height: 100dvh;
+    /* 100dvh minus .vuka-game-container's own top/bottom padding (same
+       formula as that padding) — plain 100dvh here overshoots the space
+       actually left inside the padded container and clips the bet button. */
+    min-height: calc(
+        100dvh
+        - max(var(--kd-space-2), env(safe-area-inset-top, 0px))
+        - max(var(--kd-space-2), env(safe-area-inset-bottom, 0px))
+    );
     gap: clamp(2px, 1vw, 4px);
 }
 
@@ -981,6 +1036,26 @@
     .vuka-game-container {
         padding-top: max(var(--kd-space-3), env(safe-area-inset-top, 0px));
         padding-bottom: max(var(--kd-space-3), env(safe-area-inset-bottom, 0px));
+        /* Vertical scroll is a mobile-only escape hatch (see .vuka-game-container's
+           own overflow-y comment) — desktop/tablet windows are tall enough that it
+           never engages, but the browser's overlay scrollbar track still rendered
+           unconditionally. Hide it here; scrolling itself is untouched. */
+        scrollbar-width: none;
+    }
+
+    .vuka-game-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Padding above switched to --kd-space-3 on this breakpoint — keep
+       .vuka-primary-view's min-height formula (mobile default: --kd-space-2)
+       matching it so the bet button doesn't clip. */
+    .vuka-primary-view {
+        min-height: calc(
+            100dvh
+            - max(var(--kd-space-3), env(safe-area-inset-top, 0px))
+            - max(var(--kd-space-3), env(safe-area-inset-bottom, 0px))
+        );
     }
 }
 

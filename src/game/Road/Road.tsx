@@ -64,8 +64,10 @@ const CoinMarker = ({laneIndex}: {laneIndex: number}) => {
             >
                 {/* Faceted gem shape (was a flat coin cylinder) — octahedron
                     gives it distinct cut faces so the shine/pulse actually
-                    reads as a gem catching light rather than a glowing disc. */}
-                <octahedronGeometry args={[0.34]} />
+                    reads as a gem catching light rather than a glowing disc.
+                    Radius 0.29 (0.24 * 1.2 bump) — gem+text top still sits
+                    under the chicken's ~0.95 world-unit height. */}
+                <octahedronGeometry args={[0.29]} />
                 <meshPhysicalMaterial
                     color={isNext ? "#FFC83D" : "#766CFF"}
                     emissive={isNext ? "#FFC83D" : "#766CFF"}
@@ -80,14 +82,14 @@ const CoinMarker = ({laneIndex}: {laneIndex: number}) => {
                 along world +X, matching the cars' travel direction (all lanes
                 drive +X — see useVehicleSpawner). */}
             <Text
-                // Gem (octahedronGeometry(0.34)) spans y -0.34..0.34 — sit
-                // the text's bottom edge just above its top vertex instead
-                // of at the old y=0.2 (which was inside/behind the gem).
-                position={[0, 0.5, 0]}
+                // Gem (octahedronGeometry(0.29)) spans y -0.29..0.29 — sit
+                // the text's bottom edge just above its top vertex. Values
+                // are the prior 0.3/0.4/0.018 each bumped 20%.
+                position={[0, 0.36, 0]}
                 rotation={[0, -Math.PI / 2, 0]}
-                fontSize={0.7}
+                fontSize={0.48}
                 color="#FFFFFF"
-                outlineWidth={0.03}
+                outlineWidth={0.022}
                 outlineColor="#000000"
                 anchorX="center"
                 anchorY="bottom"

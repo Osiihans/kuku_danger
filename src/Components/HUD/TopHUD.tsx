@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useGameStore} from "../../state/useGameStore.ts";
 import {formatKES} from "../../utils/gameMath.ts";
 import {HowToPlayModal} from "./HowToPlayModal.tsx";
@@ -10,27 +10,60 @@ export const TopHUD = () => {
     const isMuted = useGameStore(s => s.isMuted);
     const toggleMute = useGameStore(s => s.toggleMute);
     const [showHowToPlay, setShowHowToPlay] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const settingsRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!showSettings) return;
+        const onOutsideClick = (e: MouseEvent) => {
+            if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+                setShowSettings(false);
+            }
+        };
+        document.addEventListener("mousedown", onOutsideClick);
+        return () => document.removeEventListener("mousedown", onOutsideClick);
+    }, [showSettings]);
 
     return (
         <>
             <div className="top-bar">
                 <div className="top-left">
-                    <button className="icon-button" onClick={() => setShowHowToPlay(true)} aria-label="How to Play">
-                        ℹ️
-                    </button>
-                    <button className="icon-button" onClick={toggleMute} aria-label="Toggle Mute">
-                        {isMuted ? "🔇" : "🔊"}
-                    </button>
-                </div>
-
-                <div className="top-center">
                     <img src={KukuLogo} alt="Kuku Logo" className="kuku-logo" />
                 </div>
 
-                <div className="top-right">
+                <div className="top-center">
                     <div className="kd-balance-pill">
                         <img src={CoinIcon} alt="" />
                         {formatKES(balance)}
+                    </div>
+                </div>
+
+                <div className="top-right">
+                    <div className="kd-settings-wrap" ref={settingsRef}>
+                        <button
+                            className="icon-button"
+                            onClick={() => setShowSettings(v => !v)}
+                            aria-label="Settings"
+                            aria-expanded={showSettings}
+                        >
+                            ⚙️
+                        </button>
+                        {showSettings && (
+                            <div className="kd-settings-dropdown">
+                                <button
+                                    className="kd-settings-item"
+                                    onClick={() => { setShowHowToPlay(true); setShowSettings(false); }}
+                                >
+                                    ℹ️ How to Play
+                                </button>
+                                <button
+                                    className="kd-settings-item"
+                                    onClick={() => { toggleMute(); setShowSettings(false); }}
+                                >
+                                    {isMuted ? "🔇" : "🔊"} Sound {isMuted ? "Off" : "On"}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
